@@ -1,86 +1,56 @@
-/**
- * @author Christian Burke and Michael D'Amico
- * @version 29 October 2024
- */
 package songpack;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
+public class program5 {
+    public static void main(String[] args) {
+        // Specify the path to your TSV file and the genre you want to read
+        String tsvFilePath = args[0]; // Change this to your actual file path
+        String genre = "rock"; // Change this to your favorite genre
 
-public class Program5 {
-	 public static void main(String[] args) throws IOException {
-	        if (args.length < 2) {
-	            System.out.println("Usage: java Program5 <file path> <genre>");
-	            return;
-	            
-	           
-	        }
+        try {
+            // Read the songs into a BinarySearchTree
+            BinarySearchTree songsBST = MyDataReader.readFileToBST(tsvFilePath, genre);
+            System.out.println("Songs loaded into the BST successfully!");
+            
+            Top10Songs(songsBST);
+            
+            mostPopularArtistInRange(songsBST, 1000, 2000000);
 
-	        String filePath = args[0];
-	        String genre = args[1];
+        } catch (IOException e) {
+            System.err.println("Error reading the TSV file: " + e.getMessage());
+        }
+        
+    }
+    
+    private static void Top10Songs(BinarySearchTree songs) {
+    	// Get the sorted list of songs
+        ArrayList<Song> sortedSongs = songs.toSortedArrayList();
+        // Reverse the list to get descending order by views
+        Collections.reverse(sortedSongs);
+        // Print the top 10 songs with the highest views
+        System.out.println("Top 10 songs with the highest views:");
+        for (int i = 0; i < 10 && i < sortedSongs.size(); i++) {
+            Song song = sortedSongs.get(i);
+            System.out.println(song.getTitle() + " - Views: " + song.getViews());
+        }
+    }
+    private static void mostPopularArtistInRange(BinarySearchTree songs, int rangeMin, int rangeMax) {
+    	// Clone the tree
+        BinarySearchTree clonedTree = songs.clone();
 
-	   
-	 // Load songs into the BinarySearchTree
-	    long startTime = System.currentTimeMillis();
-	    BinarySearchTree songs = MyDataReader.readFileToBST(filePath, genre);
-	    
-	    long endTime = System.currentTimeMillis();
-	    System.out.println((endTime - startTime) + " milliseconds to read the " + genre + " songs into a binary search tree");
+        // Filter nodes with views < 1000 or > 10000 on the cloned tree
+        clonedTree.fliterByView(rangeMin, rangeMax);
 
-	    // Display confirmation of the tree structure
-	    if (songs != null) {
-	        System.out.println("Is the BinarySearchTree valid (BST)?: " + songs.isBST());
-	    	}
-	    
-	    
-	    
-	    
-	    //Task 2 
-	    // Print the top-10 titles of songs with the highest number of views
-	    long startTop10Time = System.currentTimeMillis();
-	    ArrayList<Song> top10Songs = songs.getTop10Songs();
-	    long endTop10Time = System.currentTimeMillis();
+        // Check if the resulting cloned tree is still a valid BST
+        System.out.println("Is the filtered cloned tree a valid BST? " + clonedTree.isBST());
 
-	    System.out.println("Top-10 titles of songs with the highest number of views:");
-	    for (Song song : top10Songs) {
-	        System.out.println(song.getTitle());
-	    }
-	   
-	    System.out.println((endTop10Time - startTop10Time) + " milliseconds to find top-10 popular songs");
-	    
-	    
-	    
-	    
-	    
-	    //Task 3 
-	    
-	    
-	    // Step 1: Clone the tree
-	    long cloneStartTime = System.currentTimeMillis();
-	    BinarySearchTree clonedTree = songs.clone();
-	    long cloneEndTime = System.currentTimeMillis();
-	    System.out.println((cloneEndTime - cloneStartTime) + " milliseconds to clone the tree");
-	    
-
-	    // Step 2: Filter the cloned tree by view range
-	    long filterStartTime = System.currentTimeMillis();
-	    clonedTree.filterByView(1000, 10000);
-	    long filterEndTime = System.currentTimeMillis();
-	    System.out.println((filterEndTime - filterStartTime) + " milliseconds to filter the tree by view range");
-
-	    // Step 3: Validate that the filtered tree is still a BST
-	    boolean isValidAfterFilter = clonedTree.isBST();
-	    System.out.println("Validation result of cloning and filtering: " + isValidAfterFilter);
-
-	    // Step 4: Find the most popular artist(s) in the filtered view range
-	    long popularArtistStartTime = System.currentTimeMillis();
-	    ArrayList<String> popularArtists = clonedTree.popularArtists();
-	    long popularArtistEndTime = System.currentTimeMillis();
-
-	    System.out.println("The artist(s) with the highest views in the range 1000-10000: " + popularArtists);
-	    System.out.println((popularArtistEndTime - popularArtistStartTime) + " milliseconds to find popular artists in the range");
-	   
-	    }
-	}
+        // Print the most popular artists within the given view range
+        System.out.println("Most popular artist(s) within the view range " + rangeMin + " - " + rangeMax + ":");
+        for (String artist : clonedTree.popularArtists()) {
+            System.out.println(artist);
+        }
+    }
+}
